@@ -209,6 +209,20 @@ describe("UrlRouter", function () {
         expect($urlRouter.href(new UrlMatcher('/hello'))).toBe('#/hello');
       }));
     });
+
+    describe("reload checking", function() {
+      it("should check UrlMatcher parameters", inject(function($urlRouter) {
+        var m = new UrlMatcher('/:foo/:bar/:baz', {
+          params: {
+            foo: { dynamic: true },
+            bar: { dynamic: true },
+            baz: {}
+          }
+        });
+        expect($urlRouter.isDynamic(m, { foo: "1", bar: "2" })).toBe(true);
+        expect($urlRouter.isDynamic(m, { bar: "1", baz: "2" })).toBe(false);
+      }));
+    });
   });
 
 });

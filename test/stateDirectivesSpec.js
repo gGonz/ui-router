@@ -151,14 +151,15 @@ describe('uiStateRef', function() {
     }));
 
     it('should not transition states when ctrl-clicked', inject(function($state, $stateParams, $q) {
-      expect($state.$current.name).toEqual('top');
-      triggerClick(el, { ctrlKey: true });
+      expect($state.$current.name).toEqual('');
+      expect($stateParams).toEqualData({});
 
+      triggerClick(el, { ctrlKey: true });
       timeoutFlush();
       $q.flush();
       
-      expect($state.current.name).toEqual('top');
-      expect($stateParams).toEqualData({ });
+      expect($state.current.name).toEqual('');
+      expect($stateParams).toEqualData({});
     }));
 
     it('should not transition states when meta-clicked', inject(function($state, $stateParams, $q) {
@@ -168,29 +169,31 @@ describe('uiStateRef', function() {
       timeoutFlush();
       $q.flush();
 
-      expect($state.current.name).toEqual('top');
+      expect($state.current.name).toEqual('');
       expect($stateParams).toEqualData({});
     }));
 
     it('should not transition states when shift-clicked', inject(function($state, $stateParams, $q) {
-      expect($state.$current.name).toEqual('top');
+      expect($state.$current.name).toEqual('');
+      expect($stateParams).toEqualData({});
 
       triggerClick(el, { shiftKey: true });
       timeoutFlush();
       $q.flush();
 
-      expect($state.current.name).toEqual('top');
+      expect($state.current.name).toEqual('');
       expect($stateParams).toEqualData({});
     }));
 
     it('should not transition states when middle-clicked', inject(function($state, $stateParams, $q) {
-      expect($state.$current.name).toEqual('top');
+      expect($state.$current.name).toEqual('');
+      expect($stateParams).toEqualData({});
 
       triggerClick(el, { button: 1 });
       timeoutFlush();
       $q.flush();
 
-      expect($state.current.name).toEqual('top');
+      expect($state.current.name).toEqual('');
       expect($stateParams).toEqualData({});
     }));
 
@@ -202,12 +205,14 @@ describe('uiStateRef', function() {
       timeoutFlush();
       $q.flush();
 
-      expect($state.current.name).toEqual('top');
+      expect($state.current.name).toEqual('');
       expect($stateParams).toEqualData({});
     }));
 
     it('should not transition states if preventDefault() is called in click handler', inject(function($state, $stateParams, $q) {
-      expect($state.$current.name).toEqual('top');
+      expect($state.$current.name).toEqual('');
+      expect($stateParams).toEqualData({});
+
       el.bind('click', function(e) {
         e.preventDefault();
       });
@@ -216,7 +221,7 @@ describe('uiStateRef', function() {
       timeoutFlush();
       $q.flush();
 
-      expect($state.current.name).toEqual('top');
+      expect($state.current.name).toEqual('');
       expect($stateParams).toEqualData({});
     }));
 

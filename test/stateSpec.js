@@ -27,7 +27,7 @@ describe('state', function () {
       H = { data: {propA: 'propA', propB: 'propB'} },
       HH = { parent: H },
       HHH = {parent: HH, data: {propA: 'overriddenA', propC: 'propC'} },
-      RS = { url: '^/search?term', reloadOnSearch: false },
+      RS = { url: '^/search?term', params: { term: { dynamic: true } } },
       OPT = { url: '/opt/:param', params: { param: "100" } },
       OPT2 = { url: '/opt2/:param2/:param3', params: { param3: "300", param4: "400" } },
       AppInjectable = {};
@@ -164,16 +164,27 @@ describe('state', function () {
       expect($state.current).toBe(A);
     }));
 
-    it('doesn\'t trigger state change if reloadOnSearch is false', inject(function ($state, $q, $location, $rootScope){
-      initStateTo(RS);
-      $location.search({term: 'hello'});
-      var called;
+    it('does not trigger state change if params are dynamic', inject(function ($state, $q, $location, $rootScope, $stateParams) {
+      var called = { change: false, observe: false };
+      initStateTo(RS, { term: 'goodbye' });
+
+      $location.search({ term: 'hello' });
+      expect($stateParams.term).toBe("goodbye");
+
       $rootScope.$on('$stateChangeStart', function (ev, to, toParams, from, fromParams) {
-        called = true
+        called.change = true;
       });
+
+      $stateParams.$observe('term', function(val) {
+        called.observe = true;
+      });
+
       $q.flush();
-      expect($location.search()).toEqual({term: 'hello'});
-      expect(called).toBeFalsy();        
+      expect($location.search()).toEqual({ term: 'hello' });
+      expect($stateParams.term).toBe('hello');
+
+      expect(called.change).toBe(false);
+      expect(called.observe).toBe(true);
     }));
 
     it('ignores non-applicable state parameters', inject(function ($state, $q) {
@@ -1229,7 +1240,7 @@ describe('state', function () {
   });
 });
 
-describe('state queue', function(){
+describe('state queue', function() {
   angular.module('ui.router.queue.test', ['ui.router.queue.test.dependency'])
     .config(function($stateProvider) {
       $stateProvider
