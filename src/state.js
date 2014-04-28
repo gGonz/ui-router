@@ -1353,9 +1353,11 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
       // to the set that should be visible to the state, and are independent of when we update
       // the global $state and $stateParams values.
       dst.resolve = $resolve.resolve(state.resolve, locals, dst.resolve, state);
+
       var promises = [dst.resolve.then(function (globals) {
         dst.globals = globals;
       })];
+
       if (inherited) promises.push(inherited);
 
       // Resolve template and dependencies for all views.
@@ -1393,72 +1395,77 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
 $StateParamsProvider.$inject = [];
 function $StateParamsProvider() {
 
-  var observers = {}, current = {};
+  function stateParamsFactory() {
+    var observers = {}, current = {};
 
-  function unhook(key, func) {
-    return function() {
-      forEach(key.split(" "), function(k) {
-        observers[k].splice(observers[k].indexOf(func), 1);
+    function unhook(key, func) {
+      return function() {
+        forEach(key.split(" "), function(k) {
+          observers[k].splice(observers[k].indexOf(func), 1);
+        });
+      };
+    }
+
+    function observeChange(key, val) {
+      if (!observers[key] || !observers[key].length) return;
+
+      forEach(observers[key], function(func) {
+        func(val);
       });
+    }
+
+    function StateParams() {
+    }
+
+    StateParams.prototype.$digest = function() {
+      forEach(this, function(val, key) {
+        if (val == current[key] || !this.hasOwnProperty(key)) return;
+        current[key] = val;
+        observeChange(key, val);
+      }, this);
     };
+
+    StateParams.prototype.$set = function(params) {
+      forEach(params, function(val, key) {
+        this[key] = val;
+        observeChange(key);
+      }, this);
+      this.$sync();
+    };
+
+    StateParams.prototype.$sync = function() {
+      copy(this, current);
+    };
+
+    StateParams.prototype.$off = function() {
+      observers = {};
+    };
+
+    StateParams.prototype.$localize = function(state, params) {
+      var localized = new StateParams();
+      params = params || this;
+
+      forEach(state.params, function(val, key) {
+        localized[key] = params[key];
+      });
+      return localized;
+    };
+
+    StateParams.prototype.$observe = function(key, func) {
+      forEach(key.split(" "), function(k) {
+        (observers[k] || (observers[k] = [])).push(func);
+      });
+      return unhook(key, func);
+    };
+
+    return new StateParams();
   }
 
-  function observeChange(key, val) {
-    if (!observers[key] || !observers[key].length) return;
-
-    forEach(observers[key], function(func) {
-      func();
-    });
-  }
-
-  function StateParams() {
-  }
-
-  StateParams.prototype.$digest = function() {
-    forEach(this, function(val, key) {
-      if (val == current[key] || !this.hasOwnProperty(key)) return;
-      current[key] = val;
-      observeChange(key, val);
-    }, this);
-  };
-
-  StateParams.prototype.$set = function(params) {
-    forEach(params, function(val, key) {
-      this[key] = val;
-      observeChange(key);
-    }, this);
-    this.$sync();
-  };
-
-  StateParams.prototype.$sync = function() {
-    copy(this, current);
-  };
-
-  StateParams.prototype.$off = function() {
-    observers = {};
-  };
-
-  StateParams.prototype.$localize = function(state) {
-    var localized = new StateParams();
-
-    forEach(state.params, function(val, key) {
-      localized[key] = this[key];
-    }, this);
-    return localized;
-  };
-
-  StateParams.prototype.$observe = function(key, func) {
-    forEach(key.split(" "), function(k) {
-      (observers[k] || (observers[k] = [])).push(func);
-    });
-    return unhook(key, func);
-  };
+  var global = stateParamsFactory();
 
   this.$get = $get;
   $get.$inject = ['$rootScope'];
   function $get(   $rootScope) {
-
-    var global = new StateParams();
 
     $rootScope.$watch(function() {
       global.$digest();
