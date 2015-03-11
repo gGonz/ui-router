@@ -59,7 +59,12 @@ module.exports = function (grunt) {
       tasks: ['build', 'karma:background:run']
     },
     connect: {
-      server: {},
+      server: {
+        options: {
+            port: 8080,
+            keepalive: true
+        }
+      },
       sample: {
         options:{
           port: 5555,
