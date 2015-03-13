@@ -901,6 +901,7 @@ function $UrlMatcherFactory() {
     var isOptional = config.value !== undefined;
     var squash = getSquashPolicy(config, isOptional);
     var replace = getReplace(config, arrayMode, isOptional, squash);
+    var dynamic = config.dynamic === true;
 
     function unwrapShorthand(config) {
       var keys = isObject(config) ? objectKeys(config) : [];
@@ -984,7 +985,7 @@ function $UrlMatcherFactory() {
       replace: replace,
       isOptional: isOptional,
       value: $value,
-      dynamic: undefined,
+      dynamic: dynamic,
       config: config,
       toString: toString
     });
